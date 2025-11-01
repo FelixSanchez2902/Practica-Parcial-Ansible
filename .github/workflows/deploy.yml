@@ -2,8 +2,7 @@ name: Build, Push Docker Image and Deploy to Render
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   build-and-deploy:
@@ -21,17 +20,26 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}   # felix850l
+          password: ${{ secrets.DOCKER_PASSWORD }}   # token con write
 
       - name: Build Docker image with tags
         run: |
-          docker build -t felix8501/ansible-docker-lab:latest \
-                       -t felix8501/ansible-docker-lab:${{ env.SHA_SHORT }} \
-                       -t felix8501/ansible-docker-lab:${{ env.DATE }} .
+          docker build -t felix850l/ansible-docker-lab:latest \
+                       -t felix850l/ansible-docker-lab:${{ env.SHA_SHORT }} \
+                       -t felix850l/ansible-docker-lab:${{ env.DATE }} .
 
       - name: Push Docker images
         run: |
-          docker push felix8501/ansible-docker-lab:latest
-          docker push felix8501/ansible-docker-lab:${{ env.SHA_SHORT }}
-          docker push felix8501/a
+          docker push felix850l/ansible-docker-lab:latest
+          docker push felix850l/ansible-docker-lab:${{ env.SHA_SHORT }}
+          docker push felix850l/ansible-docker-lab:${{ env.DATE }}
+
+      - name: Trigger Render deploy
+        run: |
+          curl -fsSL \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            --data "{\"serviceId\":\"${{ secrets.RENDER_SERVICE_ID }}\",\"clearCache\":true}" \
+            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
+
