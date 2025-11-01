@@ -21,7 +21,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}   # felix850l
-          password: ${{ secrets.DOCKER_PASSWORD }}   # token con write
+          password: ${{ secrets.DOCKER_PASSWORD }}   # PAT con permisos write/delete
 
       - name: Build Docker image with tags
         run: |
@@ -35,15 +35,6 @@ jobs:
           docker push felix850l/ansible-docker-lab:${{ env.SHA_SHORT }}
           docker push felix850l/ansible-docker-lab:${{ env.DATE }}
 
-      - name: Trigger Render deploy
-  run: |
-    set -e
-    URL="https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"
-    echo "POST $URL"
-    curl -sS -X POST "$URL" \
-      -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-      -H "Content-Type: application/json" \
-      -d '{"clearCache":true}' \
-      -w "\nHTTP_STATUS:%{http_code}\n"
-
-
+      - name: Trigger Render deploy (deploy hook)
+        run: |
+          curl -sS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" -w "\nHTTP_STATUS:%{http_code}\n"
