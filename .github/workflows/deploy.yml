@@ -36,10 +36,14 @@ jobs:
           docker push felix850l/ansible-docker-lab:${{ env.DATE }}
 
       - name: Trigger Render deploy
-        run: |
-          curl -fsSL \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            --data "{\"serviceId\":\"${{ secrets.RENDER_SERVICE_ID }}\",\"clearCache\":true}" \
-            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
+  run: |
+    set -e
+    URL="https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"
+    echo "POST $URL"
+    curl -sS -X POST "$URL" \
+      -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+      -H "Content-Type: application/json" \
+      -d '{"clearCache":true}' \
+      -w "\nHTTP_STATUS:%{http_code}\n"
+
 
