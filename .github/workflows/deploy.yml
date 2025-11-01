@@ -17,6 +17,12 @@ jobs:
           echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
+      - name: Check required secrets
+        run: |
+          [ -n "${{ secrets.DOCKER_USERNAME }}" ] || { echo "Missing DOCKER_USERNAME"; exit 1; }
+          [ -n "${{ secrets.DOCKER_PASSWORD }}" ] || { echo "Missing DOCKER_PASSWORD"; exit 1; }
+          [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ] || { echo "Missing RENDER_DEPLOY_HOOK"; exit 1; }
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -37,4 +43,5 @@ jobs:
 
       - name: Trigger Render deploy (deploy hook)
         run: |
-          curl -sS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" -w "\nHTTP_STATUS:%{http_code}\n"
+          curl -sS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" \
+            -o /dev/null -w "HTTP_STATUS:%{http_code}\n"
